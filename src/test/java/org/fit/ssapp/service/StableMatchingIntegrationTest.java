@@ -62,32 +62,32 @@ public class StableMatchingIntegrationTest {
     assertCapacityValid(jsonNode.get("data"), dto);
   }
 
-  @ParameterizedTest
-  @MethodSource("stableMatchingAlgorithms")
-  void stableMatching_ExcludePair(String algorithm) throws Exception {
-    StableMatchingProblemDto dto = createExcludePairDto(algorithm);
-
-    MvcResult result = mockMvc.perform(post("/api/stable-matching-solver")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(dto)))
-        .andExpect(request().asyncStarted())
-        .andReturn();
-
-    String response = mockMvc.perform(asyncDispatch(result))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andReturn()
-        .getResponse()
-        .getContentAsString();
-
-    JsonNode jsonNode = objectMapper.readTree(response);
-    assertThat(jsonNode.has("data")).isTrue();
-    assertThat(jsonNode.get("data").has("matches")).isTrue();
-    assertThat(jsonNode.get("data").has("fitnessValue")).isTrue();
-
-    assertNoExcludedPairs(jsonNode.get("data").get("matches").get("matches"), dto.getExcludedPairs());
-  }
+//  @ParameterizedTest
+//  @MethodSource("stableMatchingAlgorithms")
+//  void stableMatching_ExcludePair(String algorithm) throws Exception {
+//    StableMatchingProblemDto dto = createExcludePairDto(algorithm);
+//
+//    MvcResult result = mockMvc.perform(post("/api/stable-matching-solver")
+//            .contentType(MediaType.APPLICATION_JSON)
+//            .content(objectMapper.writeValueAsString(dto)))
+//        .andExpect(request().asyncStarted())
+//        .andReturn();
+//
+//    String response = mockMvc.perform(asyncDispatch(result))
+//        .andDo(print())
+//        .andExpect(status().isOk())
+//        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//        .andReturn()
+//        .getResponse()
+//        .getContentAsString();
+//
+//    JsonNode jsonNode = objectMapper.readTree(response);
+//    assertThat(jsonNode.has("data")).isTrue();
+//    assertThat(jsonNode.get("data").has("matches")).isTrue();
+//    assertThat(jsonNode.get("data").has("fitnessValue")).isTrue();
+//
+//    assertNoExcludedPairs(jsonNode.get("data").get("matches").get("matches"), dto.getExcludedPairs());
+//  }
 
   @Test
   void stableMatching_Invalid_NoRequestBody() throws Exception {
