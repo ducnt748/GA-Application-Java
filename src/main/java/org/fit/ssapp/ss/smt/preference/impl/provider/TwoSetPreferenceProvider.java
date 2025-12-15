@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import org.fit.ssapp.ss.smt.MatchingData;
@@ -30,7 +31,10 @@ import org.fit.ssapp.util.StringUtils;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
+@Slf4j
 public class TwoSetPreferenceProvider implements PreferenceBuilder {
+
+  private static final String EVAL_ERR_MSG = "Error at Evaluation function [%d], details: %s .";
 
   private final MatchingData matchingData;
   private final int sizeOf1;
@@ -54,27 +58,40 @@ public class TwoSetPreferenceProvider implements PreferenceBuilder {
     this.sizeOf1 = matchingData.getTotalIndividualOfSet(0);
     this.sizeOf2 = matchingData.getSize() - sizeOf1;
 
-    if (!StringUtils.isEmptyOrNull(evalFunctionForSet1)) {
-      if (expressionOfSet2 != null) {
-        return;
+    // Handle eval function 1
+    try {
+      if (StringUtils.isEmptyOrNull(evalFunctionForSet1)) {
+        this.expressionOfSet1 = null;
+      } else {
+        if (expressionOfSet1 != null) {
+          return;
+        }
+        this.variablesOfSet1 = PreferenceProviderUtils.filterVariable(evalFunctionForSet1);
+        this.expressionOfSet1 = new ExpressionBuilder(evalFunctionForSet1)
+          .variables(PreferenceProviderUtils.convertMapToSet(variablesOfSet1))
+          .build();
       }
-      this.variablesOfSet1 = PreferenceProviderUtils.filterVariable(evalFunctionForSet1);
-      //            this.expressionOfSet1 = new ExpressionBuilder(evalFunctionForSet1)
-      //                    .variables(PreferenceProviderUtils.convertMapToSet(variablesOfSet1))
-      //                    .build();
+    } catch (Exception e) {
+      log.error("ERROR: Building Eval Func 1: ", e);
+      throw new IllegalArgumentException(String.format(EVAL_ERR_MSG, 1, e.getMessage()));
     }
-    this.expressionOfSet1 = null;
 
-    if (StringUtils.isEmptyOrNull(evalFunctionForSet2)) {
-      this.expressionOfSet2 = null;
-    } else {
-      if (expressionOfSet2 != null) {
-        return;
+    // Handle eval function 2
+    try {
+      if (StringUtils.isEmptyOrNull(evalFunctionForSet2)) {
+        this.expressionOfSet2 = null;
+      } else {
+        if (expressionOfSet2 != null) {
+          return;
+        }
+        this.variablesOfSet2 = PreferenceProviderUtils.filterVariable(evalFunctionForSet2);
+        this.expressionOfSet2 = new ExpressionBuilder(evalFunctionForSet2)
+                .variables(PreferenceProviderUtils.convertMapToSet(variablesOfSet2))
+                .build();
       }
-      this.variablesOfSet2 = PreferenceProviderUtils.filterVariable(evalFunctionForSet2);
-      this.expressionOfSet2 = new ExpressionBuilder(evalFunctionForSet2)
-              .variables(PreferenceProviderUtils.convertMapToSet(variablesOfSet2))
-              .build();
+    } catch (Exception e) {
+      log.error("ERROR: Building Eval Func 2: ", e);
+      throw new IllegalArgumentException(String.format(EVAL_ERR_MSG, 2, e.getMessage()));
     }
 
   }
