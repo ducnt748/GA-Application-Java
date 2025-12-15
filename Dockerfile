@@ -10,7 +10,7 @@ ADD . $HOME
 RUN mvn package -DskipTests
 
 
-FROM openjdk:17-jdk-alpine
+FROM eclipse-temurin:17-jdk-alpine
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 COPY --from=build /app/target/*.jar app.jar
